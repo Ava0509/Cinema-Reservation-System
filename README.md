@@ -1,3 +1,3 @@
 # Cinema Reservation System
 
-Python + SQL project.
+Python + SQL project
