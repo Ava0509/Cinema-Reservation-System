@@ -1,30 +1,5 @@
-
 import database as db
 import tabulate as tb
-
-layout = (['A',12], ['B',12], ['C',12], ['D',12], 
-          ['E',10], ['F',10], ['G',10], ['H',10],
-          ['I',8], ['J',8], ['K',8], ['L',8])
-
-with open("sample_data.sql","a") as file:
-    for screen in range(1,11):
-        for row, seats in layout:
-            if row in ('A','B','C','D'):
-                category = 1
-            elif row in ('E','F','G','H'):
-                category = 2
-            else:
-                category = 3
-
-            for seat in range(1, seats+1):
-                seat_number = f"{row}{seat}"
-                file.write(f"insert into Seats(ScreenID, Seat_Number, CategoryID)"
-                           f"values ({screen}, '{seat_number}', {category});\n")
-                 
-
-
-db.con.commit()
-cursor.close()
 
 '''
 def book_show():
@@ -67,19 +42,27 @@ import tkinter as tk
 
 window = tk.Tk()
 window.title("Seat Selection")
-window.geometry("1000x700")
-
+window.geometry("1200x700")
 selected = []
-booked = [] #source from MySQL
+booked = ["A3", "F6"] #source from MySQL
 seat_buttons = {}
 
 layout = (['A',12], ['B',12], ['C',12], ['D',12], 
           ['E',10], ['F',10], ['G',10], ['H',10],
           ['I',8], ['J',8], ['K',8], ['L',8])
 
+def seat_clicked(seat):
+    if seat in selected:
+        selected.remove(seat)
+        seat_buttons[seat].config(bg = "SystemButtonFace")
+    else:
+        selected.append(seat)
+        seat_buttons[seat].config(bg = "green")
+    print(selected)
+
 tk.Label(window, 
          text = "------------------------- SCREEN -------------------------",
-         font = ("Helvetica", 14, "bold")).grid(row = 0, column = 0, columnspan = 15, pady = 10)
+         font = ("Helvetica", 14, "bold")).grid(row = 0, column = 0, columnspan = 16, pady = 10)
 
 current_row = 2 #row A starts here
 
@@ -92,7 +75,7 @@ for row, seats in layout:
              font = ("Helvetica", 11, "normal")).grid(row = current_row, column = 0)
 
     for seat in range(1, seats+1):
-        seat_name = f"{row}{s}"
+        seat_name = f"{row}{seat}"
 
         #Generating the middle aisle
         if seats ==12:
@@ -103,20 +86,20 @@ for row, seats in layout:
 
         elif seats == 10:
             if seat<=5:
-                column = seat
-            else:
                 column = seat + 1
+            else:
+                column = seat + 2
 
         else:
-            if s<=4:
-                column = seat
+            if seat<=4:
+                column = seat + 2
             else:
-                column = seat + 1
+                column = seat + 3
 
         if seat_name in booked: #deactivating booked seats
             btn = tk.Button(window, text = seat_name, 
-                            width = 5, state = "disabled")
-        else;
+                            width = 5, bg="red", fg = "white", state = "disabled")
+        else:
             btn = tk.Button(window, text = seat_name, width = 5, 
                             command = lambda s=seat_name: seat_clicked(s))
 
@@ -124,5 +107,6 @@ for row, seats in layout:
         seat_buttons[seat_name] = btn
 
     current_row+=1
+
 
 window.mainloop()
