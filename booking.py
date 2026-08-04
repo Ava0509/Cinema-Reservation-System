@@ -1,0 +1,128 @@
+
+import database as db
+import tabulate as tb
+
+layout = (['A',12], ['B',12], ['C',12], ['D',12], 
+          ['E',10], ['F',10], ['G',10], ['H',10],
+          ['I',8], ['J',8], ['K',8], ['L',8])
+
+with open("sample_data.sql","a") as file:
+    for screen in range(1,11):
+        for row, seats in layout:
+            if row in ('A','B','C','D'):
+                category = 1
+            elif row in ('E','F','G','H'):
+                category = 2
+            else:
+                category = 3
+
+            for seat in range(1, seats+1):
+                seat_number = f"{row}{seat}"
+                file.write(f"insert into Seats(ScreenID, Seat_Number, CategoryID)"
+                           f"values ({screen}, '{seat_number}', {category});\n")
+                 
+
+
+db.con.commit()
+cursor.close()
+
+'''
+def book_show():
+    print("""
+-------------- Select a Movie --------------
+""")
+    
+    db.cursor.execute("Select MovieID, Title, Genre, Language_, Duration, Rating, Release_date, Description_ " \
+    "from Movies where Is_active = true")
+    movies = db.cursor.fetchall()
+
+    if not movies:
+        print("No movies available.")
+    else:
+        print(tb.tabulate(movies, 
+                        headers = ("Movie ID", "Title", "Genre", "Language", "Duration", 
+                                    "Rating", "Release Date","Description"), 
+                        tablefmt = "rounded"))
+
+        id_list = [id[0] for id in movies]
+        while True:
+            try:
+                m_id = int(input("Enter Movie ID: "))
+                if m_id not in id_list:
+                    print("Invalid Movie ID. Try again.")
+                else:
+                    break
+            except ValueError:
+                print("Invalid input. Try again.")
+
+        db.cursor.execute("Select ShowID, Show_date, Show_time from Shows " \
+        "where MovieID = %s and Is_active = true and Is_booked_out = false",(m_id,))
+        shows = db.cursor.fetchall()
+        print(tb.tabulate(shows, 
+                        headers = ("Show ID", "Show Date (YYYY-MM-DD)", "Show Time"), 
+                        tablefmt = "rounded"))
+'''
+
+import tkinter as tk
+
+window = tk.Tk()
+window.title("Seat Selection")
+window.geometry("1000x700")
+
+selected = []
+booked = [] #source from MySQL
+seat_buttons = {}
+
+layout = (['A',12], ['B',12], ['C',12], ['D',12], 
+          ['E',10], ['F',10], ['G',10], ['H',10],
+          ['I',8], ['J',8], ['K',8], ['L',8])
+
+tk.Label(window, 
+         text = "------------------------- SCREEN -------------------------",
+         font = ("Helvetica", 14, "bold")).grid(row = 0, column = 0, columnspan = 15, pady = 10)
+
+current_row = 2 #row A starts here
+
+for row, seats in layout:
+    if row in ('E','I'): #Divider between zones
+        tk.Label(window, text = "").grid(row = current_row, column = 0)
+        current_row +=1
+
+    tk.Label(window, text = row, 
+             font = ("Helvetica", 11, "normal")).grid(row = current_row, column = 0)
+
+    for seat in range(1, seats+1):
+        seat_name = f"{row}{s}"
+
+        #Generating the middle aisle
+        if seats ==12:
+            if seat<=6:
+                column = seat
+            else:
+                column = seat+1
+
+        elif seats == 10:
+            if seat<=5:
+                column = seat
+            else:
+                column = seat + 1
+
+        else:
+            if s<=4:
+                column = seat
+            else:
+                column = seat + 1
+
+        if seat_name in booked: #deactivating booked seats
+            btn = tk.Button(window, text = seat_name, 
+                            width = 5, state = "disabled")
+        else;
+            btn = tk.Button(window, text = seat_name, width = 5, 
+                            command = lambda s=seat_name: seat_clicked(s))
+
+        btn.grid(row = current_row, column =column, padx = 1, pady = 2)
+        seat_buttons[seat_name] = btn
+
+    current_row+=1
+
+window.mainloop()
