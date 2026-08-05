@@ -31,7 +31,7 @@ def book_tickets():
     pass
 def view_movies():
     pass
-def browse_movies()
+def browse_movies():
     pass
 def view_shows():
     pass
