@@ -107,6 +107,20 @@ for row, seats in layout:
         seat_buttons[seat_name] = btn
 
     current_row+=1
+'''
+confirm_btn = tk.Button(
+    window,
+    text="Confirm Booking",
+    font=("Helvetica", 12, "bold"),
+    command=confirm_booking
+)
 
+confirm_btn.grid(row=current_row + 1,
+                 column=0,
+                 columnspan=15,
+                 pady=15)
+def confirm_booking():
 
+    print(selected)
+'''
 window.mainloop()
