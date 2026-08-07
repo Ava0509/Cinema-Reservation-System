@@ -10,10 +10,17 @@ window.title("Cinema Reservation System")
 window.geometry("600X500")
 window.configure(bg = "white")
 
-heading = tk.Label(window, text = " WELCOME TO xyz CINEMAS",  #name needed!
-                   font = ("Georgia", 20, "bold"), bg = "white")
-heading.pack(pady=30)
 
+
+def clear_window():
+    for widget in window.winfo_children():
+        widget.destroy()
+
+def customer_menu():
+    heading = tk.Label(window, text = " WELCOME TO xyz CINEMAS",  #name needed!
+                font = ("Georgia", 20, "bold"), bg = "white")
+    heading.pack(pady=30)
+    
 """
 CINEMA TICKET BOOKING SYSTEM
 1. View Movies [show movies]
