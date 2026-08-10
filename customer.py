@@ -3,7 +3,7 @@ import tabulate as tb
 import tkinter as tk
 
 con = db.con
-cursor = db.cursor()
+cursor = db.con.cursor()
 
 window = tk.Tk()
 window.title("Cinema Reservation System")
@@ -38,8 +38,22 @@ def book_tickets():
     pass
 def view_movies():
     pass
+
 def browse_movies():
-    pass
+    clear_window()
+    tk.Label(window, text = "NOW SHOWING", 
+             font =("Century Gothic", 22, "bold"), bg = "white").pack(pady=20)
+
+    cursor = db.con.cursor()
+    cursor.execute("Select MovieID, Genre, Language_, " \
+                   "Duration, Rating, Release_date, Description_ " \
+                   "from Movies where Is_active = true")
+    
+    movies = cursor.fetchall()
+    
+    
+    
+
 def view_shows():
     pass
 def check_availability():

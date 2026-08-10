@@ -1,4 +1,9 @@
 import tkinter as tk
+import database as db
+
+con = db.con
+cursor = db.cursor
+
 root=tk.Tk()
 root.geometry("800x600")
 root.title("Admin Page")

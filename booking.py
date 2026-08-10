@@ -80,19 +80,19 @@ for row, seats in layout:
         #Generating the middle aisle
         if seats ==12:
             if seat<=6:
-                column = seat
+                column = seat 
             else:
-                column = seat+1
+                column = seat + 2
 
         elif seats == 10:
             if seat<=5:
                 column = seat + 1
             else:
-                column = seat + 2
+                column = seat + 3
 
         else:
             if seat<=4:
-                column = seat + 2
+                column = seat + 3 
             else:
                 column = seat + 3
 
@@ -102,8 +102,7 @@ for row, seats in layout:
         else:
             btn = tk.Button(window, text = seat_name, width = 5, 
                             command = lambda s=seat_name: seat_clicked(s))
-
-        btn.grid(row = current_row, column =column, padx = 1, pady = 2)
+        btn.grid(row = current_row, column =column, padx = 3, pady = 4)
         seat_buttons[seat_name] = btn
 
     current_row+=1
