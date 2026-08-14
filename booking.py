@@ -58,7 +58,6 @@ def seat_clicked(seat):
     else:
         selected.append(seat)
         seat_buttons[seat].config(bg = "green")
-    print(selected)
 
 tk.Label(window, 
          text = "------------------------- SCREEN -------------------------",
