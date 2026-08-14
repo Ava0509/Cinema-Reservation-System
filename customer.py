@@ -1,5 +1,4 @@
 import database as db
-import tabulate as tb
 import tkinter as tk
 
 con = db.con
@@ -42,18 +41,14 @@ def view_movies():
 def browse_movies():
     clear_window()
     tk.Label(window, text = "NOW SHOWING", 
-             font =("Century Gothic", 22, "bold"), bg = "white").pack(pady=20)
+             font =("Century Gothic", 22, "bold"), bg = "#ffffff").pack(pady=20)
 
     cursor = db.con.cursor()
-    cursor.execute("Select MovieID, Genre, Language_, " \
+    cursor.execute("Select MovieID, Title, Genre, Language_, " \
                    "Duration, Rating, Release_date, Description_ " \
                    "from Movies where Is_active = true")
     
     movies = cursor.fetchall()
-    
-    
-    
-
 def view_shows():
     pass
 def check_availability():
