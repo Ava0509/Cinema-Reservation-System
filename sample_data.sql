@@ -13,7 +13,7 @@ values
 ('F1', 'Sports, Drama', 'English', 156, true, 'PG-13', '2025-06-27',
  'A veteran Formula One driver returns to mentor a promising young racer.'),
 
-('Mission: Impossible – The Final Reckoning', 'Action, Thriller', 'English', 170, true, 'PG-13', '2025-05-23',
+('Mission: Impossible - The Final Reckoning', 'Action, Thriller', 'English', 170, true, 'PG-13', '2025-05-23',
  'Ethan Hunt faces his most dangerous mission yet to stop a global catastrophe.'),
 
 ('Thunderbolts*', 'Action, Superhero', 'English', 127, true, 'PG-13', '2025-05-02',
