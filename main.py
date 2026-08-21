@@ -19,4 +19,4 @@ with open("sample_data.sql","a") as file:
                 file.write(f"insert into Seats(ScreenID, Seat_Number, CategoryID)"
                            f"values ({screen}, '{seat_number}', {category});\n")
 
-""
+"""

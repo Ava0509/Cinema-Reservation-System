@@ -5,7 +5,7 @@ insert into Movies
 
 values
 ('Superman', 'Action, Sci-Fi', 'English', 129, true, 'PG-13', '2025-07-11',
- 'Clark Kent embraces his destiny as Superman while confronting a powerful new threat.'),
+'Clark Kent embraces his destiny as Superman while confronting a powerful new threat.'),
 
 ('Jurassic World: Rebirth', 'Action, Adventure', 'English', 134, true, 'PG-13', '2025-07-02',
  'A new expedition enters dinosaur territory where survival is far from guaranteed.'),
@@ -31,8 +31,8 @@ values
 ('28 Years Later', 'Horror, Thriller', 'English', 126, true, 'R', '2025-06-20',
  'Survivors continue to battle the aftermath of the devastating rage virus.'),
 
-('The Naked Gun', 'Comedy', 'English', 108, true, 'PG-13', '2025-08-01',
- 'A modern reboot of the classic slapstick police comedy.'),
+('The Super Mario Galaxy Movie', 'Animation', 'English', 92, true, 'PG', '2026-04-03',
+ 'An animated adventure following Mario and friends as they explore the galaxy.'),
 
 ('Avatar: The Way of Water', 'Sci-Fi, Adventure', 'English', 192, true, 'PG-13', '2022-12-16',
  'Jake Sully and his family seek refuge among Pandora''s ocean clans.'),

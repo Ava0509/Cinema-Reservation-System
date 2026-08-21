@@ -28,7 +28,33 @@ def book_tickets():
     clear_content()
 
     tk.Label(content_frame,text="BOOK TICKETS", font=("Century Gothic", 22, "bold"),bg="white").pack(pady=20)
+
+
+       
+def view_shows(movie_id):
+    clear_content()
     
+    cursor.execute("Select title, Genre, Language_, Duration, Rating, Release_date, Description_ from Movies where movieid = %s",(movie_id,))
+    details = cursor.fetchone()
+
+    tk.Label(content_frame,
+             text = f"SHOW TIMINGS", font = ("Century Gothic", 22,"bold"), bg = "white").pack(pady=20)
+    tk.Label(content_frame, text = details[0],font = ("Century Gothic", 24,"bold"), bg = "#e3bb8e").pack(pady = 15)
+    tk.Label(content_frame, text=f"{details[1]} | {details[2]} | {details[3]} minutes", font=("Helvetica",11), bg="#ffffff").pack(pady=5)
+    tk.Label(content_frame, text = f"Rating: {details[4]}", font = ("Helvetica", 11, "bold"), bg ="#ffffff").pack(pady=5)
+    tk.Label(content_frame, text= f"Release Date: {details[5]}", font = ("Helvetica", 10), bg = "#ffffff").pack(pady=5)
+    tk.Label(content_frame, text = details[6], font = ("Helvetica", 10), bg= "#ffffff" , wraplength=650, justify = "center").pack(padx=20, pady=15)
+
+
+    cursor.execute("Select ShowID, ScreenID, show_date, show_time from Shows " \
+        "where MovieID = %s and Is_active = true and Is_booked_out = false order by Show_date, show_time",(movie_id,))
+    shows = cursor.fetchall()
+    for show in shows:
+        show_frame = tk.Frame(content_frame, bg = "#ffffff", relief = "raised", borderwidth=1)
+        show_frame.pack(padx=10,pady=10)
+        tk.Label(show_frame, text = f"Screen {show[1]}", font=("Helvetica",12,"bold"), bg = "white").pack(side = "left", padx=20, pady= 20)
+        tk.Label(show_frame, text = f"{show[2]} | {show[3]}", font = ("Helvetica",11), bg= "white").pack(side="left", padx= 20)
+
 def browse_movies():
     clear_content()
     tk.Label(content_frame, text = "NOW SHOWING", font =("Century Gothic", 22, "bold"), bg = "#ffffff").pack(pady=20)
@@ -62,13 +88,12 @@ def browse_movies():
         card.grid_propagate(False) #to prevent auto-resizing
         tk.Label(card, text = movie[1], fg="#000000", font = ("Helvetica", 13, "bold"), bg = "#ffd153", wraplength = 220).pack(pady=15)
         tk.Label(card, text = movie[2], fg="#000000", font = ("Courier", 10), bg = "#c8a8d4").pack(pady=5)
-        tk.Label(card, text = f"{movie[3]} | {movie[4]}", fg="#000000", font = ("Courier", 10), bg = "#c8a8d4").pack(pady=5)
+        tk.Label(card, text = f"{movie[3]} | {movie[4]} minutes", fg="#000000", font = ("Courier", 10), bg = "#c8a8d4").pack(pady=5)
         tk.Label(card, text = f"Rating: {movie[5]}", fg="#000000", font = ("Arial", 10, "bold"), bg = "#c8a8d4").pack(pady=5)
         tk.Label(card, text = f"Relased: {movie[6]}", fg = "#000000", font = ("Helvetica", 9), bg = "#c8a8d4").pack(pady=5)
+
+        tk.Button(card, text = "VIEW Shows", bg = "#ffd153", command = lambda movie_id = movie[0]: view_shows(movie_id)).pack(pady=10)
         
-        
-def view_shows():
-    pass
 def check_availability():
     pass
 def search_booking():

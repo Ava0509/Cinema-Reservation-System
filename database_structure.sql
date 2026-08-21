@@ -11,7 +11,6 @@ create table Movies (
     Rating varchar(10),
     Release_date date,
     Description_ TEXT
-
 );
 
 create table Screens (
@@ -73,4 +72,5 @@ create table BookingSeats (
     SeatID int not null,
     foreign key (BookingID) references Bookings(BookingID),
     foreign key (SeatID) references Seats(SeatID),
-    unique (BookingID, SeatID)
+    unique (BookingID, SeatID) 
+);
