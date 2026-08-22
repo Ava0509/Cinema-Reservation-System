@@ -27,7 +27,98 @@ def customer_menu():
 def book_tickets():
     clear_content()
 
-    tk.Label(content_frame,text="BOOK TICKETS", font=("Century Gothic", 22, "bold"),bg="white").pack(pady=20)
+    window=tk.Tk()
+    window.title("Book Ticket")
+    window.geometry("800x500")
+    heading_label=tk.Label(text="Booking Tickets", font=("Georgia", 34))
+    heading_label.grid(row=1, column=0)
+
+    date_label=tk.Label(text="Date:", font=("Arial", 23))
+    date_label.grid(row=3, column=0)
+
+    select_Language_label=tk.Label(window, text="Select Language:", font=("Arial", 23))
+    select_Language_label.grid(row=5, column=0)
+
+    timings_label=tk.Label(window, text="Timings:", font=("Arial", 23))
+    timings_label.grid(row=8, column=0)
+
+    movie_entry=tk.Entry(window, font=("Arial", 23))
+    movie_entry.grid(row=2, column=1)
+    movie_label=tk.Label(window, text="Enter Movie Name:", font=("Arial", 23))
+    movie_label.grid(row=2, column=0)
+
+    error_message_check=False
+    Invalid_Movie_Label=""
+
+    def timing(a):
+        global user_timing
+        user_timing=str(a[0])
+    
+    def language(a):
+        global user_language
+        user_language=a[0]
+        
+        cursor=con.cursor()
+        query="select show_time from shows where movieID=%s"
+        cursor.execute(query, tuple(movieID))
+        timings=cursor.fetchall()
+        for i in range(len(timings)):
+            button=tk.Button(window, text=timings[i], font=("Arial", 19), command= lambda t=timings[i]: timing(t))
+            button.grid(row=9, column=i)
+    
+    def selection_changed(event):
+        selected_label.config(text=f"You have selected {event.widget.get()}")
+
+        #making language stuff
+        cursor=con.cursor()
+        query="select language from movies where movieID=%s"
+        cursor.execute(query, tuple(movieID))
+        languages=cursor.fetchall()
+        for i in range(len(languages)):
+            button=tk.Button(window, text=languages[i], font=("Arial", 19), command= lambda l=languages[i]: language(l))
+            button.grid(row=6, column=i)
+        
+    
+    
+    def submit():
+        movie=movie_entry.get()
+        #movie_entry.delete(0,tk.END)
+
+        nonlocal Invalid_Movie_Label
+
+        cursor=con.cursor()
+        movieID_query="select movieID from movies where title=%s"
+        cursor.execute(movieID_query, (movie, ))
+        global movieID
+        movieID=cursor.fetchone()
+        if movieID!=None:
+            show_date_query="select show_date from shows where movieID=%s"
+            cursor.execute(show_date_query, tuple(movieID))
+            global show_dates
+            show_dates=cursor.fetchall()
+        else:
+            show_dates=[]
+
+        if show_dates!=[]:
+            nonlocal error_message_check
+            if error_message_check==True:
+                Invalid_Movie_Label.destroy()
+            date_combobox=ttk.Combobox(window, values=show_dates, font=("Helvetica", 23))
+            date_combobox.set(show_dates[0])
+            date_combobox.bind("<<ComboboxSelected>>", selection_changed)
+            date_combobox.grid(row=3, column=1)
+
+            global selected_label
+            selected_label = tk.Label(window, text=f"You have selected ---")
+            selected_label.grid(row=4, column=1)
+        else:
+            Invalid_Movie_Label=tk.Label(window, text="Sorry, The movie you have entered does not exist, \nPlease try again", font=("Helvetica", 17))
+            Invalid_Movie_Label.grid(row=6, column=0)
+
+            error_message_check=True
+
+    submit_button=tk.Button(text="submit", command=submit)
+    submit_button.grid(row=2, column=2)
 
 
        
