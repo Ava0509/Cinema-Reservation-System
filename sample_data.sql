@@ -81,9 +81,9 @@ values
 insert into Seat_categories
 (Category_name, Ticket_price)
 values
-('Standard', 250.00),
-('Premium', 400.00),
-('VIP', 650.00);
+('Standard', 50.00),
+('Premium', 80.00),
+('VIP', 150.00);
 
 insert into Shows
 (MovieID, ScreenID, Show_date, Show_time, Is_booked_out, Is_active)

@@ -1,5 +1,6 @@
 import database as db
 import tkinter as tk
+from tkinter import ttk
 
 con = db.con
 cursor = db.con.cursor()
@@ -27,25 +28,96 @@ def customer_menu():
 def book_tickets():
     clear_content()
 
-    window=tk.Tk()
-    window.title("Book Ticket")
-    window.geometry("800x500")
-    heading_label=tk.Label(text="Booking Tickets", font=("Georgia", 34))
-    heading_label.grid(row=1, column=0)
+    tk.Label(content_frame, text = "BOOK TICKETS", font = ("Helvetica",30,"bold"),bg = "#b4cdef").pack(pady=20)
+    tk.Label(content_frame, text = "Select a movie:", font = ("Georgia", 16), bg="#b4cdef").pack(pady=5)
+    movie_combobox = ttk.Combobox(content_frame, state = "readonly", font = ("Helvetica", 14), width = 35)
+    movie_combobox.pack(pady = 5)
+    tk.Label(content_frame, text = "Select a date:", font=("Helvetica",14), bg = "#ffffff").pack(pady =(20,5))
+    date_combobox = ttk.Combobox(content_frame, state = "readonly", font = ("Helvetica", 14), width = 35)
+    date_combobox.pack(pady= 5)
+    tk.Label(content_frame, text = "Select a showtime:", font=("Helvetica",14), bg = "#ffffff").pack(pady =(20,5))
+    time_combobox = ttk.Combobox(content_frame, state = "readonly", font = ("Helvetica", 14), width = 35)
+    time_combobox.pack(pady= 5)
+    
+    cursor.execute("Select MovieID, Title from Movies where Is_active = true order by title")
+    movies = cursor.fetchall()
+    movie_dict = {}
+    for movie in movies:
+        movie_dict[movie[1]] = movie[0]
+    movie_combobox["values"] = list(movie_dict.keys())
 
-    date_label=tk.Label(text="Date:", font=("Arial", 23))
-    date_label.grid(row=3, column=0)
+    def movie_selected(event):
+        movie_title = movie_combobox.get()
+        movie_id = movie_dict[movie_title]
 
-    select_Language_label=tk.Label(window, text="Select Language:", font=("Arial", 23))
-    select_Language_label.grid(row=5, column=0)
+        cursor.execute("Select distinct Show_date from Shows where MovieID = %s AND Is_active = true and " \
+        "Is_booked_out = false order by show_date", (movie_id,))
+        dates = cursor.fetchall()
+        date_combobox["values"] = [date[0] for date in dates]
+        date_combobox.set("")
+    movie_combobox.bind("<<ComboboxSelected>>", movie_selected)
 
-    timings_label=tk.Label(window, text="Timings:", font=("Arial", 23))
-    timings_label.grid(row=8, column=0)
+    def date_selected(event):
+        movie_title = movie_combobox.get()
+        movie_id = movie_dict[movie_title]
+        selected_date = date_combobox.get()
+        cursor.execute("Select Show_time from Shows where MovieID= %s and Show_date = %s and Is_active = true and " \
+        "Is_booked_out = false order by show_time", (movie_id, selected_date))
+        times = cursor.fetchall()
+        time_combobox["values"] = [time[0] for time in times]
+        time_combobox.set("")
+    date_combobox.bind("<<ComboboxSelected>>", date_selected)
 
-    movie_entry=tk.Entry(window, font=("Arial", 23))
-    movie_entry.grid(row=2, column=1)
-    movie_label=tk.Label(window, text="Enter Movie Name:", font=("Arial", 23))
-    movie_label.grid(row=2, column=0)
+    def select_seats(show_id):
+        movie_title = movie_combobox.get()
+        selected_date = date_combobox.get()
+        selected_time = time_combobox.get()
+
+        if movie_title=="" or selected_date == "" or selected_time =="":
+            tk.Label(content_frame, text = "Please select a movie, date and showtime.", font = ("Helvetica", 12, "bold"), bg = "#b4cdef").pack(pady= 10)
+            return
+        movie_id = movie_dict[movie_title]
+
+        cursor.execute("Select ShowID from Shows where MovieID = %s and Show_date = %s and Show_time = %s and Is_active = true and " \
+        "Is_booked_out = false",(movie_id, selected_date, selected_time))
+        show = cursor.fetchone()
+        if show is None:
+            tk.Label(content_frame, text="Sorry, this show is no longer available", font = ("Helvetica", 12, "bold"), bg= "#b4cdef").pack(pady= 10)
+            return
+
+        show_id = show[0]
+
+        print("Movie ID: ", movie_id)
+        print("Show ID: ", show_id)
+        print("Date: ", selected_date)
+        print("Time: ", selected_time)
+
+
+    select_seats_button = tk.Button(content_frame, text = "SELECT SEATS", font = ("Helvetica",14, "bold"), bg = "#ffd153", command = select_seats)
+    select_seats_button.pack(pady=20)
+
+
+
+    
+
+
+
+
+
+"""
+    heading_label=tk.Label(content_frame, text="Book Tickets", font=("Georgia", 34))
+    heading_label.pack(pady=10)
+
+    date_label=tk.Label(content_frame,text="Date:", font=("Arial", 23))
+    date_label.pack(pady=10)
+
+    timings_label=tk.Label(content_frame, text="Timings:", font=("Arial", 23))
+    timings_label.pack(pady=10)
+
+    movie_entry=tk.Entry(content_frame, font=("Arial", 23))
+    movie_entry.pack(pady=10)
+    movie_label=tk.Label(content_frame, text="Enter Movie Name:", font=("Arial", 23))
+    movie_label.pack(pady=10)
 
     error_message_check=False
     Invalid_Movie_Label=""
@@ -54,20 +126,9 @@ def book_tickets():
         global user_timing
         user_timing=str(a[0])
     
-    def language(a):
-        global user_language
-        user_language=a[0]
-        
-        cursor=con.cursor()
-        query="select show_time from shows where movieID=%s"
-        cursor.execute(query, tuple(movieID))
-        timings=cursor.fetchall()
-        for i in range(len(timings)):
-            button=tk.Button(window, text=timings[i], font=("Arial", 19), command= lambda t=timings[i]: timing(t))
-            button.grid(row=9, column=i)
     
     def selection_changed(event):
-        selected_label.config(text=f"You have selected {event.widget.get()}")
+        selected_label.config(content_frame,text=f"You have selected {event.widget.get()}")
 
         #making language stuff
         cursor=con.cursor()
@@ -75,8 +136,8 @@ def book_tickets():
         cursor.execute(query, tuple(movieID))
         languages=cursor.fetchall()
         for i in range(len(languages)):
-            button=tk.Button(window, text=languages[i], font=("Arial", 19), command= lambda l=languages[i]: language(l))
-            button.grid(row=6, column=i)
+            button=tk.Button(content_frame, text=languages[i], font=("Arial", 19), command= lambda l=languages[i]: language(l))
+            button.pack(pady=10)
         
     
     
@@ -103,24 +164,24 @@ def book_tickets():
             nonlocal error_message_check
             if error_message_check==True:
                 Invalid_Movie_Label.destroy()
-            date_combobox=ttk.Combobox(window, values=show_dates, font=("Helvetica", 23))
+            date_combobox=ttk.Combobox(content_frame, values=show_dates, font=("Helvetica", 23))
             date_combobox.set(show_dates[0])
             date_combobox.bind("<<ComboboxSelected>>", selection_changed)
-            date_combobox.grid(row=3, column=1)
+            date_combobox.pack(pady=10)
 
             global selected_label
-            selected_label = tk.Label(window, text=f"You have selected ---")
-            selected_label.grid(row=4, column=1)
+            selected_label = tk.Label(content_frame, text=f"You have selected ---")
+            selected_label.pack(pady=10)
         else:
-            Invalid_Movie_Label=tk.Label(window, text="Sorry, The movie you have entered does not exist, \nPlease try again", font=("Helvetica", 17))
-            Invalid_Movie_Label.grid(row=6, column=0)
+            Invalid_Movie_Label=tk.Label(content_frame, text="Sorry, The movie you have entered does not exist, \nPlease try again", font=("Helvetica", 17))
+            Invalid_Movie_Label.pack(pady=10)
 
             error_message_check=True
 
     submit_button=tk.Button(text="submit", command=submit)
-    submit_button.grid(row=2, column=2)
+    submit_button.pack(pady=10)
 
-
+"""
        
 def view_shows(movie_id):
     clear_content()
@@ -129,7 +190,7 @@ def view_shows(movie_id):
     details = cursor.fetchone()
 
     tk.Label(content_frame,
-             text = f"SHOW TIMINGS", font = ("Century Gothic", 22,"bold"), bg = "white").pack(pady=20)
+             text = f"SHOW TIMINGS", font = ("Century Gothic", 22,"bold"), bg = "#eeeeee").pack(pady=20)
     tk.Label(content_frame, text = details[0],font = ("Century Gothic", 24,"bold"), bg = "#e3bb8e").pack(pady = 15)
     tk.Label(content_frame, text=f"{details[1]} | {details[2]} | {details[3]} minutes", font=("Helvetica",11), bg="#ffffff").pack(pady=5)
     tk.Label(content_frame, text = f"Rating: {details[4]}", font = ("Helvetica", 11, "bold"), bg ="#ffffff").pack(pady=5)
@@ -141,10 +202,10 @@ def view_shows(movie_id):
         "where MovieID = %s and Is_active = true and Is_booked_out = false order by Show_date, show_time",(movie_id,))
     shows = cursor.fetchall()
     for show in shows:
-        show_frame = tk.Frame(content_frame, bg = "#ffffff", relief = "raised", borderwidth=1)
+        show_frame = tk.Frame(content_frame, bg = "#caedcb", relief = "raised", borderwidth=1)
         show_frame.pack(padx=10,pady=10)
-        tk.Label(show_frame, text = f"Screen {show[1]}", font=("Helvetica",12,"bold"), bg = "white").pack(side = "left", padx=20, pady= 20)
-        tk.Label(show_frame, text = f"{show[2]} | {show[3]}", font = ("Helvetica",11), bg= "white").pack(side="left", padx= 20)
+        tk.Label(show_frame, text = f"Screen {show[1]}", font=("Helvetica",12,"bold"), bg = "#caedcb").pack(side = "left", padx=20, pady= 20)
+        tk.Label(show_frame, text = f"{show[2]} | {show[3]}", font = ("Helvetica",11), bg= "#caedcb").pack(side="left", padx= 20)
 
 def browse_movies():
     clear_content()

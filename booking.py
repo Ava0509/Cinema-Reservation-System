@@ -42,9 +42,9 @@ import tkinter as tk
 
 window = tk.Tk()
 window.title("Seat Selection")
-window.geometry("1200x700")
+window.geometry("800x700")
 selected = []
-booked = ["A3", "F6"] #source from MySQL
+booked = []
 seat_buttons = {}
 
 layout = (['A',12], ['B',12], ['C',12], ['D',12], 
@@ -60,18 +60,27 @@ def seat_clicked(seat):
         seat_buttons[seat].config(bg = "green")
 
 tk.Label(window, 
-         text = "------------------------- SCREEN -------------------------",
+         text = "|---------------------------------------- SCREEN ----------------------------------------|",
          font = ("Helvetica", 14, "bold")).grid(row = 0, column = 0, columnspan = 16, pady = 10)
 
 current_row = 2 #row A starts here
 
 for row, seats in layout:
-    if row in ('E','I'): #Divider between zones
-        tk.Label(window, text = "").grid(row = current_row, column = 0)
+    if row == "A": #Divider between zones
+        tk.Label(window, text = "--------------------------- CLASSIC / AED 50 ---------------------------",
+                 font = ("Georgia", 12, "bold")).grid(row = current_row, column = 0,columnspan = 16, pady = (10,5))
+        current_row +=1
+    if row == "E": #Divider between zones
+        tk.Label(window, text = "--------------------------- PREMIUM / AED 80 ---------------------------",
+                    font = ("Georgia", 12, "bold")).grid(row = current_row, column = 0,columnspan = 16, pady = (15,5))
+        current_row +=1
+    if row == "I": #Divider between zones
+        tk.Label(window, text = "--------------------------- VIP / AED 150 ---------------------------",
+                    font = ("Georgia", 12, "bold")).grid(row = current_row, column = 0,columnspan = 16, pady = (15,5))
         current_row +=1
 
     tk.Label(window, text = row, 
-             font = ("Helvetica", 11, "normal")).grid(row = current_row, column = 0)
+             font = ("Helvetica", 11, "normal"), bg = "#ffea00").grid(row = current_row, column = 0)
 
     for seat in range(1, seats+1):
         seat_name = f"{row}{seat}"
@@ -90,35 +99,23 @@ for row, seats in layout:
                 column = seat + 3
 
         else:
-            if seat<=4:
-                column = seat + 3 
-            else:
-                column = seat + 3
+            column = seat + 3
 
         if seat_name in booked: #deactivating booked seats
-            btn = tk.Button(window, text = seat_name, 
-                            width = 5, bg="red", fg = "white", state = "disabled")
+            btn = tk.Button(window, text = seat_name, width = 5, bg="red", fg = "white", state = "disabled")
         else:
-            btn = tk.Button(window, text = seat_name, width = 5, 
-                            command = lambda s=seat_name: seat_clicked(s))
+            btn = tk.Button(window, text = seat_name, width = 5, command = lambda s=seat_name: seat_clicked(s))
         btn.grid(row = current_row, column =column, padx = 3, pady = 4)
         seat_buttons[seat_name] = btn
 
     current_row+=1
-'''
-confirm_btn = tk.Button(
-    window,
-    text="Confirm Booking",
-    font=("Helvetica", 12, "bold"),
-    command=confirm_booking
-)
 
-confirm_btn.grid(row=current_row + 1,
-                 column=0,
-                 columnspan=15,
-                 pady=15)
-def confirm_booking():
+legend = tk.Frame(window)
+legend.grid(row = current_row + 1, column=0, columnspan = 16, pady = 20)
+tk.Label(legend, text = "AVAILABLE", font =("Georgia", 10),bg = "#ffffff").pack(side = "left", padx = 10)
+tk.Label(legend, text = "SELECTED", font =("Georgia", 10), bg = "#08e100").pack(side = "left", padx = 10)
+tk.Label(legend, text = "BOOKED", font =("Georgia", 10), bg = "#FF0000").pack(side = "left", padx = 10)
 
-    print(selected)
-'''
+
+
 window.mainloop()
