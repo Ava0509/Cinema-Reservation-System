@@ -2,6 +2,10 @@ import database as db
 import tkinter as tk
 from tkinter import ttk, messagebox
 import Seat_selection as SS
+import hashlib
+
+def hash_passkey(passkey):
+    return hashlib.sha256(passkey.encode()).hexdigest()
 
 con = db.con
 cursor = db.con.cursor()
@@ -101,6 +105,66 @@ def book_tickets():
             tk.Label(summary_window, text = f"Seats: {", ".join(selected_seats)}", font = ("Georgia", 13)).pack(pady =5)
 
             tk.Label(summary_window, text = "CUSTOMER DETAILS", font = ("Helvetica", 18, "bold")).pack(pady=(25, 10))
+            tk.Label(summary_window, text="Already have an account? Log in.\nNew customer? Register below.", font=("Courier", 11, "bold")).pack(pady=5)
+
+            def customer_login()
+                login_window = tk.Toplevel(summary_window)
+                login_window.title("Customer Login")
+                login_window.geometry("450x350")
+                login_window.grab_set()
+
+                tk.Label(login_window, text = "CUSTOMER LOGIN", font= ("Times New Roman", 22, "bold")).pack(pady=20)
+                tk.Label(login_window, text = "Phone or Email:",  font=("Helvetica", 12)).pack(pady=5)
+                login_identifier = tk.Entry(login_window, width=35,font=("Helvetica", 12))
+                login_identifier.pack(pady=5)
+                tk.Label(login_window, text = "Passkey: ", font=("Helvetica", 12)).pack(pady=5)
+                login_passkey = tk.Entry(login_window, width=35, font = ("Helvetica", 12), show"*")
+                login_passkey.pack(pady=5)
+
+                def login():
+                    identifier = login_identifier.get().strip()
+                    entered_passkey = login_passkey.get()
+                    if identifier == "" or entered_passkey == "":
+                        messagebox.showwarning("Missing Information", "Please enter your phone/email and passkey.",parent=login_window)
+                        return
+
+                    try:
+                        cursor.execute("SELECT CustomerID, Passkey_hash FROM Customers WHERE Phone = %s OR Email = %s", (identifier, identifier))
+                        customer = cursor.fetchone()
+                        if customer is None:
+                            messagebox.showerror("Customer Not Found","No account was found with that phone/email.",parent = login_window)
+                            return
+                        customer_id = customer[0]
+                        stored_hash = customer[1]
+
+                        if hash_passkey(entered_passkey) != stored_hash:
+                            messagebox.showerror("Invalid Passkey","The phone/email and passkey do not match.",parent=login_window)
+                            return
+                        login_window.destroy()
+                        create_booking(customer_id)
+
+                    except:
+                        messagebox.showerror("Login Error",f"Unable to log in.\n\n{e}", parent=login_window)
+
+                tk.Button(login_window,text="LOGIN", font=("Helvetica", 12, "bold"),  bg="#ffd153",, width = 15, command=login).pack(pady=20)
+                tk.Button(login_window,text="I'M NEW", font=("Helvetica", 12, "bold"),  bg="#ffd153",, width = 15, command=lambda: [login_window.destroy(), customer_registration()]).pack(pady=20)
+
+             def customer_registration():
+                register_window = tk.Toplevel(summary_window)
+                register_window.title("Customer Registration")
+                register_window.geometry("500x600")
+                register_window.grab_set()
+
+                tk.Label(register_window, text = "CUSTOMER REGISTRATION", font=("Times New Roman", 22, "bold")).pack(pady=20)
+                tk.Label(register_window, text="First Name:").pack()
+                first_name = tk.Entry(register_window, width=35)
+                first_name.pack(pady=5)
+                tk.Label(register_window, text="Last Name:").pack()
+                last_name = tk.Entry(register_window, width=35)
+                last_name.pack(pady=5)
+
+                tk.Label(register_window, text="Phone or Email:", font=("Helvetica", 11, "bold")).pack(pady=(10, 3))
+
             tk.Label(summary_window, text = "Please enter your details:", font=("Courier", 13, "bold")).pack(pady = 5)
 
             tk.Label(summary_window, text = "First Name: ").pack()
@@ -119,6 +183,14 @@ def book_tickets():
             email = tk.Entry(summary_window,width = 35)
             email.pack(pady=5)
 
+            tk.Label(summary_window, text="Passkey: ").pack()
+            passkey = tk.Entry(summary_window, width=35, show="*")
+            passkey.pack(pady=5)
+
+            tk.Label(summary_window, text="Confirm Passkey: ").pack()
+            confirm_passkey = tk.Entry(summary_window, width=35, show="*")
+            confirm_passkey.pack(pady=5)
+
             total_amount= 0
             for seat in selected_seats:
                 row=seat[0]
@@ -135,42 +207,67 @@ def book_tickets():
                 last = last_name.get().strip()
                 phone_number = phone.get().strip()
                 email_address = email.get().strip()
+                customer_passkey = passkey.get()
+                confirmed_passkey = confirm_passkey.get()
 
-                if first == "" or last == "" or phone_number == "" or email_address == "":
+                if first == "" or last == "" or phone_number == "" or email_address == "" or customer_passkey == "" or confirmed_passkey == "":
                     messagebox.showwarning("Missing Details",
                                            "Please enter all details.")
                     return
 
-                cursor.execute("Select CustomerID from Customers where Phone = %s", (phone_number,))
-                customer = cursor.fetchone()
+                if customer_passkey != confirmed_passkey:
+                    messagebox.showwarning("Passkey Mismatch", "Please make sure both passkey fields are identical.")
+                    return
 
-                if customer is not None:
-                    customer_id = customer[0]
-                else:
-                    cursor.execute("Insert into Customers (First_name, Last_name, Phone, Email) values(%s, %s, %s, %s)", (first, last, phone_number,email_address))
-                    customer_id = cursor.lastrowid
+                try:
+                    cursor.execute("Select CustomerID, Passkey_hash from Customers where Phone = %s", (phone_number,))
+                    customer = cursor.fetchone()
 
-                cursor.execute("Insert into Bookings (CustomerID, ShowID, Booking_date, Total_amount, Booking_status)" \
-                "value(%s, %s, now(),%s,&s)", (customer_id, show_id, total_amount,"Confirmed"))
-                con.commit()
-                booking_id = cursor.lastrowid
+                    if customer is not None:
+                        customer_id = customer[0]
+                        stored_hash = customer[1]
 
-                for seat in selected_seats:
-                    cursor.execute("Select SeatID from Seats where ScreenID = (Select ScreenID from Shows where ShowID = %s) and seat_number = %s",
-                                   (show_id, seat))
-                    seat_result = cursor.fetchone()
+                        if hash_passkey(customer_passkey) != stored_hash:
+                            messagebox.showerror("Invalid Passkey", "The phone number and passkey do not match.")
+                            return
+                        
+                    else:
+                        passkey_hash = hash_passkey(customer_passkey)
+                        cursor.execute("Insert into Customers (First_name, Last_name, Phone, Email, Passkey_hash) values(%s, %s, %s, %s,%s)", (first, last, phone_number,email_address, passkey_hash))
+                        customer_id = cursor.lastrowid
 
-                    if seat_result is not None:
-                        seat_id = seat_result[0]
-                        cursor.execute("Insert into BookingSeats (BookingID, SeatID) values (%s,%s)", (booking_id, seat_id))
-                con.commit()
+                    cursor.execute("Insert into Bookings (CustomerID, ShowID, Booking_date, Total_amount, Booking_status)" \
+                    "value(%s, %s, now(),%s,%s)", (customer_id, show_id, total_amount,"Confirmed"))
+                    booking_id = cursor.lastrowid
 
-                messagebox.showinfo(
-                    "Booking Confirmed",
-                    f"Your booking has been confirmed!\n\n",
-                    f"Booking ID: {booking_id}\n"
-                    f"Total Amount: AED {total_amount:.2f}")
-                summary_window.destroy()
+                    for seat in selected_seats:
+                        cursor.execute("Select SeatID from Seats where ScreenID = (Select ScreenID from Shows where ShowID = %s) and seat_number = %s",
+                                    (show_id, seat))
+                        seat_result = cursor.fetchone()
+
+                        if seat_result is not None:
+                            seat_id = seat_result[0]
+                            cursor.execute("Insert into BookingSeats (BookingID, SeatID) values (%s,%s)", (booking_id, seat_id))
+
+                    cursor.execute("Select count(*) from Seats where ScreenID = (Select ScreenID from Shows where ShowID = %s)", (show_id,))
+                    total_seats = cursor.fetchone()[0]
+                    cursor.execute("Select count(*) from BookingSeats bs join Bookings b on bs.BookingID = b.BookingID where b.ShowID = %s and b.Booking_status = 'Confirmed'", (show_id,))
+                    booked_seats = cursor.fetchone()[0]
+                    if booked_seats == total_seats:
+                        cursor.execute("Update Shows set Is_booked_out = True where ShowID = %s", (show_id,))
+
+                    con.commit()
+
+                    messagebox.showinfo(
+                        "Booking Confirmed",
+                        f"Your booking has been confirmed!\n\n"
+                        f"Booking ID: {booking_id}\n"
+                        f"Total Amount: AED {total_amount:.2f}")
+                    summary_window.destroy()
+
+                except Exception as e:
+                    con.rollback()
+                    messagebox.showerror("Booking Error", f"Unable to complete the booking.\n\n{e}")
 
             button_frame = tk.Frame(summary_window)
             button_frame. pack(pady =25)
@@ -178,10 +275,6 @@ def book_tickets():
             tk.Button(button_frame, text = "CONFIRM", font = ("Helvetica", 12, "bold"), bg = "#ffd153", width =12, command = confirm_booking ).pack(side = "left", padx=10)
         SS.select_seats(show_id, show_booking_summary)
         
-
-        
-
-
     select_seats_button = tk.Button(content_frame, text = "SELECT SEATS", font = ("Helvetica",14, "bold"), bg = "#ffd153", command = select_seats)
     select_seats_button.pack(pady=20)
 
@@ -335,12 +428,79 @@ def view_movies():
 
         tk.Button(card, text = "VIEW Shows", bg = "#ffd153", command = lambda movie_id = movie[0]: view_shows(movie_id)).pack(pady=10)
         
-def check_availability():
-    pass
 def search_booking():
-    pass
+    clear_content()
+
+    tk.Label(content_frame, text = "MY BOOKINGS", font = ("Helvetica", 30, "bold"), bg = "#b4cdef").pack(pady = 25)
+    tk.Label(content_frame, text = "Enter your phone number:", font= ("Georgia", 16),bg= "#b4cdef").pack(pady= 10)
+    phone_entry = tk.Entry(content_frame, font= ("Helvetica",14), width=30)
+    phone_entry.pack(pady= 5)
+
+    def search():
+        phone_number = phone_entry.get().strip()
+        if phone_number == "":
+            messagebox.showwarning("Missing Information", "Please enter your phone number.")
+            return
+        cursor.execute("Select CustomerID, First_name, Last_name from Customers where phone= %s ", (phone_number,))
+        customer = cursor.fetchone()
+
+        if customer is None:
+            messagebox.showwarning("Booking not found", "No customer was found with this phone number.")
+            return
+        customer_id = customer[0]
+
+        cursor.execute("Select b.BookingID, m.Title, s.Show_date, s.Show_time, b.Total_amount, b.Booking_status from Bookings b " \
+        "join Shows s on b.ShowID = s.ShowID join Movies m on s.MovieID = m.MovieID where CustomerID = %s order by b.Booking_date desc",
+        (customer_id,))
+        bookings = cursor.fetchall()
+
+        if not bookings:
+            messagebox.showinfo("No Bookings", "You do not have any bookings")
+            return
+
+        results_frame = tk.Frame(content_frame, bg= "#b4cdef")
+        results_frame.pack(fill="both", expand = True, padx=30, pady=10)
+        
+        for widget in results_frame.winfo_children():
+            widget.destroy()
+
+        tk.Label(results_frame, text= f"Booking for {customer[1]} {customer[2]}", font =("Helvetica", 18, "bold"), bg = "#ffffff").pack(pady= 15)
+
+        for booking in bookings:
+            booking_id= booking[0]
+            cursor.execute("Select se.Seat_number from BookingSeats bs join Seats se on bs.SeatID= se.SeatID where bs.BookingID= %s " \
+            "order by se.Seat_number", (booking_id,))
+            seats= cursor.fetchall()
+            seat_list= ", ".join([seat[0] for seat in seats])
+
+            booking_frame = tk.Frame(results_frame, bg = "#ffffff", relief= "raised", borderwidth =2)
+            booking_frame.pack(padx = 30, pady=10, fill="x")
+            tk.Label(booking_frame, text = f"Booking ID: {booking_id}", font = ("Helvetica", 14, "bold"), bg ="#ffffff").pack(anchor="w", padx =20, pady=5)
+            tk.Label(booking_frame, text=f"Movie: {booking[1]}", font=("Georgia", 12), bg="#ffffff").pack(anchor="w", padx=20, pady=3)
+            tk.Label(booking_frame, text=f"Date: {booking[2]}", font=("Georgia", 12), bg="#ffffff").pack(anchor="w", padx=20, pady=3)
+            tk.Label(booking_frame, text=f"Time: {booking[3]}", font=("Georgia", 12), bg="#ffffff").pack(anchor="w", padx=20, pady=3)
+            tk.Label(booking_frame, text=f"Seats: {seat_list}", font=("Georgia", 12), bg="#ffffff").pack(anchor="w", padx=20, pady=3)
+            tk.Label(booking_frame, text=f"Total Amount: AED {booking[4]:.2f}", font=("Georgia", 12), bg="#ffffff").pack(anchor="w", padx=20, pady=3)
+            tk.Label(booking_frame, text=f"Status: {booking[5]}", font=("Helvetica", 12, "bold"), bg="#ffffff").pack(anchor="w", padx=20, pady=3)
+
+    tk.Button(content_frame, text= "SEARCH", font= ("Helvetica", 14, "bold"), bg="#ffd153", width= 15, command =search).pack(pady= 15)
+
 def cancel_booking():
-    pass
+    clear_content()
+
+    tk.Label(content_frame, text = "CANCEL BOOKING", font = ("Helvetica", 30, "bold"), bg= "#b4cdef").pack(pady=25)
+    tk.Label(content_frame, text ="Enter your phone number:" , font= ("Georgia", 16), bg = "#b4cdef").pack(pady=10)
+    phone_entry= tk.Entry(content_frame, font = ("Helvetica", 14), width= 30)
+    phone_entry.pack(pady=5)
+
+    def find_booking():
+        phone_number = phone_entry.get().strip()
+
+
+        if booking_id == "" or phone_number == "":
+            messagebox.showwarning("Missing Information", "Please enter both Booking ID and phone number.")
+            return
+    
 def exit():
     pass
 

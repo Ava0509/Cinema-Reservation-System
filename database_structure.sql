@@ -51,8 +51,9 @@ create table Customers (
     CustomerID int auto_increment primary key,
     First_name varchar(50) not null,
     Last_name varchar(50) not null,
-    Phone varchar(15) not null unique,
-    Email varchar(100) unique
+    Phone varchar(15) unique,
+    Email varchar(100) unique,
+    Passkey_hash varchar(255) not null
 );
 
 create table Bookings (
