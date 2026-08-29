@@ -44,7 +44,8 @@ create table Shows (
     Is_booked_out boolean not null default false,
     Is_active boolean not null default true,
     foreign key (MovieID) references Movies(MovieID) on update cascade,
-    foreign key (ScreenID) references Screens(ScreenID) on update cascade
+    foreign key (ScreenID) references Screens(ScreenID) on update cascade,
+    unique(ScreenID, Show_date, Show_time)
 );
 
 create table Customers (

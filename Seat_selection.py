@@ -13,7 +13,8 @@ def select_seats(show_id, on_seats_selected):
     cursor = db.con.cursor()
     cursor.execute("Select s.Seat_number from Seats s " \
     "join BookingSeats bs on s.SeatID = bs.SeatID " \
-    "join Bookings b on bs.BookingID = b.BookingID where b.ShowID = %s", (show_id,))
+    "join Bookings b on bs.BookingID = b.BookingID where b.ShowID = %s " \
+    "and b.Booking_status = 'Confirmed'", (show_id,))
 
     booked_seats = [seat[0] for seat in cursor.fetchall()]
 
