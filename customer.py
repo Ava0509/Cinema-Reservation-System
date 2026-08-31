@@ -32,6 +32,15 @@ def home():
     clear_content()
 
     tk.Label(content_frame, text = "WELCOME TO ALTAIR CINEMAS", font =("Georgia", 30, "bold"), bg= "#b4cdef").pack(pady=80)
+    tk.Label(content_frame, text="Your seat. Your screen. Your experience.", font=("Helvetica", 15, "italic"), bg="#b4cdef").pack(pady=10)
+    tk.Label(content_frame, text="Explore our movies, check show timings and reserve your seats.", font=("Helvetica", 12), bg="#b4cdef").pack(pady=10)
+    button_frame = tk.Frame(content_frame, bg="#b4cdef")
+    button_frame.pack(pady=35)
+
+    tk.Button(button_frame, text="NOW SHOWING", font=("Helvetica", 13, "bold"), bg="#ffd153", width=18, command=view_movies).pack(side="left", padx=10)
+    tk.Button(button_frame, text="REGISTER",font=("Helvetica", 13, "bold"), bg="#ffd153", width=18, command=customer_registration).pack(side="left", padx=10)
+    tk.Button(button_frame, text="LOGIN", font=("Helvetica", 13, "bold"), bg="#ffd153", width=18, command=customer_login).pack(side="left", padx=10)
+
 
 
 def customer_login(on_success=None, parent=window):
@@ -98,6 +107,82 @@ def customer_login(on_success=None, parent=window):
 
     tk.Button(login_window, text = "LOGIN", font =("Helvetica", 12, "bold"), bg= "#ffd153", width = 20, command = login).pack(pady=20)
     tk.Button(login_window, text = "CANCEL", font=("Helvetica", 11), bg="#fd8383", width=20, command=login_window.destroy).pack()
+
+def customer_registration(parent = window):
+    register_window = tk.Toplevel(parent)
+    register_window.title("Customer Registration")
+    register_window.geometry("500x600")
+    register_window.grab_set()
+
+    tk.Label(register_window, text="CUSTOMER REGISTRATION", font=("Times New Roman", 22, "bold")).pack(pady=20)
+    tk.Label(register_window, text="First Name:").pack()
+    first_name = tk.Entry(register_window, width=35)
+    first_name.pack(pady=5)
+    tk.Label(register_window, text="Last Name:").pack()
+    last_name = tk.Entry(register_window, width=35)
+    last_name.pack(pady=5)
+
+    tk.Label(register_window, text="Phone number:",font=("Helvetica", 11, "bold")).pack(pady=(10, 3))
+    phone = tk.Entry(register_window, width=35)
+    phone.pack(pady=5)
+    tk.Label(register_window, text="Email:",font=("Helvetica", 11, "bold")).pack(pady=(5, 3))
+    email = tk.Entry(register_window, width=35)
+    email.pack(pady=5)
+
+    tk.Label(register_window, text="Passkey:").pack(pady=(10, 3))
+    new_passkey = tk.Entry(register_window, width=35, show="*")
+    new_passkey.pack(pady=5)
+    tk.Label(register_window, text="Confirm Passkey:").pack()
+    confirm_passkey = tk.Entry(register_window, width=35, show="*")
+    confirm_passkey.pack(pady=5)
+
+    def register():
+        first =first_name.get().strip()
+        last= last_name.get().strip()
+        phone_number = phone.get().strip()
+        email_address =email.get().strip()
+        password = new_passkey.get()
+        confirmed_password = confirm_passkey.get()
+
+        if first =="" or last == "":
+            messagebox.showwarning("Missing Details", "Please enter your first and last name.",parent=register_window)
+            return
+
+        if phone_number =="" and email_address == "":
+            messagebox.showwarning("Missing Contact Details","Please enter either a phone number or an email.", parent=register_window)
+            return
+        if password == "" or confirmed_password == "":
+            messagebox.showwarning("Missing Passkey", "Please enter and confirm your passkey.", parent=register_window)
+            return
+
+        if password != confirmed_password:
+            messagebox.showwarning( "Passkey Mismatch", "Both passkey fields must be identical.", parent=register_window)
+            return
+
+        try:
+            cursor.execute("Select CustomerID from Customers where Phone = %s or Email = %s", (phone_number if phone_number != "" else None,email_address if email_address != "" else None))
+            existing_customer = cursor.fetchone()
+
+            if existing_customer is not None:
+                messagebox.showerror("Account Already Exists","An account already exists with this phone/email.\nPlease use the login option instead.",parent=register_window)
+                return
+
+            passkey_hash = hash_passkey(password)
+            cursor.execute("Insert into Customers (First_name, Last_name, Phone, Email, Passkey_hash) values (%s, %s, %s, %s, %s)",
+            (first, last, phone_number if phone_number != "" else None, email_address if email_address != "" else None, passkey_hash))
+            con.commit()
+            register_window.destroy()
+            messagebox.showinfo("Registration Successful","Your account has been created successfully!", parent=parent)
+            customer_login(parent=parent)
+
+        except Exception as e:
+            con.rollback()
+            messagebox.showerror("Registration Error", f"Unable to create your account.\n\n{e}",parent = register_window)
+
+    tk.Button(register_window, text="REGISTER", font=("Helvetica", 12, "bold"), bg="#ffd153", width=15, command=register).pack(pady=20)
+    tk.Button(register_window, text="CANCEL", font=("Helvetica", 11), bg="#fd8383", width=15, command=register_window.destroy).pack()
+
+
 
 '''
 def book_tickets():
