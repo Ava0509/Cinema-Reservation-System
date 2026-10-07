@@ -4,7 +4,7 @@ Python + SQL project
 
 **Current Features**
 * Customer registration and login
-* SHA-256 hashed passkey authentication
+* SHA-256 hashed password authentication
 * Movie listings and movie details
 * Show date, time and screen display
 * Interactive seat-selection interface
